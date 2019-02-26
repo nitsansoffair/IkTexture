@@ -12,8 +12,7 @@ varying vec3 color0;
 uniform mat4 MVP;
 uniform mat4 Normal;
 
-void main()
-{
+void main(){
 	gl_Position = MVP * vec4(position, 1.0);
 	texCoord0 = texCoord;  
 	color0 = color;

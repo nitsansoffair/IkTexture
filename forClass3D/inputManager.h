@@ -135,7 +135,7 @@ mat4 matrices[10],
 // Axises
 void buildGenAxises() {
 	glLineWidth(2.0f);
-	glColor3f(0.5f, 0.5f, 0.0f);
+	glColor3f(0.5f, 0.5f, 0.5f);
 	glBegin(GL_LINES);
 
 	glVertex3f(-K * 6.0f, K * 0.0f, 0.0f);	// X axis, General
@@ -148,9 +148,8 @@ void buildGenAxises() {
 }
 
 void buildAxises() {
-	// Lines of Chain
 	glLineWidth(1.5);
-	glColor3f(0.5f, 0.5f, 0.0f);
+	glColor3f(0.5f, 0.5f, 0.5f);
 	glBegin(GL_LINES);
 
 	glVertex3f(K * 0.0f, K * 1.0f, 0.0f);		// Y axis, High
