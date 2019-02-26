@@ -30,7 +30,7 @@ const char* result_string_pointer = "SOIL initialized";
 void drawCube(mat4 toDrawMat) {
 	MVP = P * toDrawMat;
 	shader.Bind();
-	color = vec3(0.0f, 0.0f, 0.0f);
+	color = vec3(1.0f, 0.0f, 0.0f);
 	shader.Update(MVP, toDrawMat, color);
 }
 

@@ -169,15 +169,7 @@ void initCubes() {
 	cubes[chainLength + 1] = new cubeLink(0, mat4(1)); // Scene
 }
 
-void rotateTargetCube(vec3 rotVec, float theta) {
-	mat4 rot = glm::rotate(mat4(1), theta, rotVec);
-	vec3 transVec = vec3(1.0f * K, 0.0f, 0.0f);
-	mat4 trans = glm::translate(mat4(1), -transVec);
-	mat4 transOp = glm::inverse(trans);
-	targetCube = trans * rot * transOp * targetCube;
-}
-
-void rotate(char direction, float theta) {
+void rotateChosenObj(char direction, float theta) {
 	setMouseLocation(xPrev, yPrev);
 	vec3 rotVec, transVec;
 	char axis = 'x';
@@ -212,7 +204,7 @@ void rotate(char direction, float theta) {
 	}
 }
 
-void move(char direction, float theta, float newXpos, float newYpos, bool mouse) {
+void moveChosenObj(char direction, float newXpos, float newYpos, bool mouse) {
 	vec2 currLoc = getMouseLocation();
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	glReadPixels((GLint)newXpos, (GLint)(DISPLAY_HEIGHT - newYpos - 1.0f), (GLsizei)1.0f, (GLsizei)1.0f, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
@@ -258,7 +250,7 @@ void move(char direction, float theta, float newXpos, float newYpos, bool mouse)
 
 	mat4 transMat = glm::translate(mat4(1), transVec);
 	if (chosenObjIdx >= 0 && chosenObjIdx < chainLength) {
-		// Translate oneOf ChainCubes
+		// Translate ChainOfCubes
 		if (direction == 'F' || direction == 'B') {
 			cubes[0]->mat = transMat * cubes[0]->mat;
 		} else if (mouse) {
@@ -351,7 +343,7 @@ void pick() {
 		for (int i = 0; i < chainLength; i++) {
 			// chainCubes
 			float objColor = 255.0f / float(i + 3.0f);
-			int roundedObjColor = (int)rint(objColor - 0.0000000001);
+			int roundedObjColor = (int)rint(objColor - 0.0000000001f);
 			if (pickColor == roundedObjColor) {
 				chosenObjIdx = prevChosenObjIdx = i;
 				backgroundPick = 0;
@@ -414,20 +406,22 @@ void key_callback(GLFWwindow* window, int key, int scanCode, int action, int mod
 			if (action == GLFW_PRESS) {
 				glfwSetWindowShouldClose(window, GLFW_TRUE);
 			}
+			break;
 
 		case GLFW_KEY_SPACE:
 			if (action == GLFW_PRESS) {
 				isSolverShouldRun = !isSolverShouldRun;
 				isSpacePressed = !isSpacePressed;
 				idxCurrCubeSolver = 0;
-			} break;
+			} 
+			break;
 
 		case GLFW_KEY_RIGHT:
 			if (action == GLFW_REPEAT || action == GLFW_PRESS)
 				if (mouseRightClick) {
-					move('R', 5.0f, 0.0f, 0.0f, false);
+					moveChosenObj('R', 0.0f, 0.0f, false);
 				} else {
-					rotate('R', 5.0f);
+					rotateChosenObj('R', 5.0f);
 				}
 			firstTimeKeyRight = true;
 			break;
@@ -435,26 +429,29 @@ void key_callback(GLFWwindow* window, int key, int scanCode, int action, int mod
 		case GLFW_KEY_LEFT:
 			if (action == GLFW_REPEAT || action == GLFW_PRESS)
 				if (mouseRightClick) {
-					move('L', 5.0f, 0.0f, 0.0f, false);
+					moveChosenObj('L', 0.0f, 0.0f, false);
 				} else {
-					rotate('L', 5.0f);
-				} break;
+					rotateChosenObj('L', 5.0f);
+				} 
+			break;
 
 		case GLFW_KEY_UP:
 			if (action == GLFW_REPEAT || action == GLFW_PRESS)
 				if (mouseRightClick) {
-					move('U', 5.0f, 0.0f, 0.0f, false);
+					moveChosenObj('U', 0.0f, 0.0f, false);
 				} else {
-					rotate('U', 5.0f);
-				} break;
+					rotateChosenObj('U', 5.0f);
+				} 
+			break;
 
 		case GLFW_KEY_DOWN:
 			if (action == GLFW_REPEAT || action == GLFW_PRESS)
 				if (mouseRightClick) {
-					move('D', 5.0f, 0.0f, 0.0f, false);
+					moveChosenObj('D', 0.0f, 0.0f, false);
 				} else {
-					rotate('D', 5.0f);
-				} break;
+					rotateChosenObj('D', 5.0f);
+				} 
+			break;
 
 		case GLFW_MOUSE_BUTTON_LEFT:
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -477,29 +474,29 @@ void cursorPositionCallback(GLFWwindow* window, double newXpos, double newYpos) 
 	vec2 currLoc = getMouseLocation();
 	if (newXpos > currLoc[0]) {
 		if (mouseRightClick) {
-			move('R', 1.0f, (float)newXpos, (float)newYpos, true);
+			moveChosenObj('R', (float)newXpos, (float)newYpos, true);
 		} else {
-			rotate('R', 1.0f);
+			rotateChosenObj('R', 1.0f);
 		}
 	} else if (newXpos < currLoc[0]) {
 		if (mouseRightClick) {
-			move('L', 1.0f, (float)newXpos, (float)newYpos, true);
+			moveChosenObj('L', (float)newXpos, (float)newYpos, true);
 		} else {
-			rotate('L', 1.0f);
+			rotateChosenObj('L', 1.0f);
 		}
 	}
 
 	if (newYpos > currLoc[1]) {
 		if (mouseRightClick) {
-			move('D', 1.0f, (float)newXpos, (float)newYpos, true);
+			moveChosenObj('D', (float)newXpos, (float)newYpos, true);
 		} else {
-			rotate('D', 1.0f);
+			rotateChosenObj('D', 1.0f);
 		}
 	} else if (newYpos < currLoc[1]) {
 		if (mouseRightClick) {
-			move('U', 1.0f, (float)newXpos, (float)newYpos, true);
+			moveChosenObj('U', (float)newXpos, (float)newYpos, true);
 		} else {
-			rotate('U', 1.0f);
+			rotateChosenObj('U', 1.0f);
 		}
 	}
 }
@@ -518,9 +515,9 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods){
 
 void scrollCallback(GLFWwindow *window, double xOffset, double yOffset) {
 	if (yOffset == 1) {
-		move('F', 1.0f, 0.0f, 0.0f, false);
+		moveChosenObj('F', 0.0f, 0.0f, false);
 	} else {
-		move('B', 1.0, 0.0f, 0.0f, false);
+		moveChosenObj('B', 0.0f, 0.0f, false);
 	}
 };
 
