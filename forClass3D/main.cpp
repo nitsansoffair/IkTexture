@@ -16,17 +16,18 @@ using namespace glm;
 
 // Variables
 GLuint EBO,
-textureCube,
-textureChain;
+	textureCube,
+	textureChain;
 
 int width,
-height;
+	height;
 
 vec3 color;
 
 const char* result_string_pointer = "SOIL initialized";
 
 
+// drawCube
 void drawCube(mat4 toDrawMat) {
 	MVP = P * toDrawMat;
 	shader.Bind();
@@ -94,9 +95,11 @@ void putTex(GLuint texture) {
 }
 
 
+// Main
 int main(int argc, char** argv){
 	textureCube = addTex(width, height, "res/textures/grass.bmp");
 
+	// Callbacks
 	glfwSetKeyCallback(display.m_window, key_callback);
 	glfwSetMouseButtonCallback(display.m_window, mouseButtonCallback);
 	glfwSetCursorPosCallback(display.m_window, cursorPositionCallback);

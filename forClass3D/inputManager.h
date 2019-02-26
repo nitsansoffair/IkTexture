@@ -49,8 +49,6 @@ float xPrev,
 	maxDist = 2.0f * K * (float)chainLength - K * 1.2f,
 	cubeLink::K = 1.025f;
 
-unsigned char Data[4];
-
 // Solver
 bool mouseRightClick = false,
 	firstTimeKeyRight = true,
@@ -123,12 +121,10 @@ GLint viewport[4];
 cubeLink* cubes[10];
 
 // Vecs
-vec3 location = vec3(0, 0, 0),
-	saveLoc = location,
-	pos = vec3(0, 0, -35),
+vec3 location = vec3(0.0f, 0.0f, 0.0f),
+	pos = vec3(0.0f, 0.0f, -35.0f),
 	forwardVec = glm::vec3(0.0f, 0.0f, 1.0f),
-	up = glm::vec3(0.0f, 1.0f, 0.0f),
-	side = glm::vec3(1.0f, 0.0f, 0.0f);
+	up = glm::vec3(0.0f, 1.0f, 0.0f);
 
 // Matrices
 mat4 matrices[10],
@@ -136,8 +132,6 @@ mat4 matrices[10],
 	mulMatTarget = glm::translate(mat4(1), vec3(4.0f * K, 0.0f, 0.0f)),
 	P1 = glm::perspective(60.0f, (float)DISPLAY_WIDTH / (float)DISPLAY_HEIGHT, 0.1f, 100.0f),
 	M = glm::mat4(1),
-	M1 = glm::translate(mat4(1), vec3(3.0f, 0.0f, 0.0f)),
-	M2 = glm::translate(mat4(1), vec3(-3.0f, 0.0f, 0.0f)),
 	P = P1 * glm::lookAt(pos, pos + forwardVec, up),
 	MVP = P * M,
 	cubeLink::scaleMat = glm::scale(vec3(1.0f, 2.0f, 1.0f));
@@ -301,8 +295,6 @@ float calcDistTipFrom(int cubeIdx) {
 
 // Pick
 void pick() {
-	Shader colorPickShader("./res/shaders/colorPickShader");
-	GLint viewport[4];
 	vec3 colorVec;
 	unsigned char data[4];
 	display.Clear(1.0f, 1.0f, 1.0f, 1.0f);
