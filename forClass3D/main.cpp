@@ -16,21 +16,22 @@ using namespace glm;
 
 // Variables
 GLuint EBO,
-textureCube,
-textureChain;
+	textureCube,
+	textureChain;
 
 int width,
-height;
+	height;
 
 vec3 color;
 
 const char* result_string_pointer = "SOIL initialized";
 
 
+// drawCube
 void drawCube(mat4 toDrawMat) {
 	MVP = P * toDrawMat;
 	shader.Bind();
-	color = vec3(1.0f, 1.0f, 1.0f);
+	color = vec3(1.0f, 0.5f, 1.0f);
 	shader.Update(MVP, toDrawMat, color);
 }
 
@@ -94,9 +95,11 @@ void putTex(GLuint texture) {
 }
 
 
+// Main
 int main(int argc, char** argv){
 	textureCube = addTex(width, height, "res/textures/grass.bmp");
 
+	// Callbacks
 	glfwSetKeyCallback(display.m_window, key_callback);
 	glfwSetMouseButtonCallback(display.m_window, mouseButtonCallback);
 	glfwSetCursorPosCallback(display.m_window, cursorPositionCallback);
@@ -104,6 +107,7 @@ int main(int argc, char** argv){
 
 	initCubes();
 	vec3 color;
+
 	while (!glfwWindowShouldClose(display.m_window)){
 		glGetIntegerv(GL_VIEWPORT, viewport);
 		glReadPixels((GLint)location[0], (GLint)(DISPLAY_HEIGHT - location[1] - 1.0f), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
@@ -112,13 +116,10 @@ int main(int argc, char** argv){
 		display.Clear(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// Add texture
+		// Texture
 		putTex(textureCube);
-
-		// General axises
 		drawCube(cubes[chainLength + 1]->getMat());
 		buildGenAxises();
-
 		drawCube(targetCube);
 		mesh.Draw();
 
