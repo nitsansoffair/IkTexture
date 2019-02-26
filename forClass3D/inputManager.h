@@ -27,10 +27,10 @@ static const int DISPLAY_WIDTH = 800, DISPLAY_HEIGHT = 800;
 
 // Consts & Camera properties
 const float K = 2.05f,
-Far = 100.0f,
-Near = 0.1f,
-CAM_ANGLE = 60.0f,
-relation = DISPLAY_HEIGHT / DISPLAY_WIDTH;
+	Far = 100.0f,
+	Near = 0.1f,
+	CAM_ANGLE = 60.0f,
+	relation = DISPLAY_HEIGHT / DISPLAY_WIDTH;
 
 const int chainLength = 4;
 
