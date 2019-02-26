@@ -116,7 +116,7 @@ int main(int argc, char** argv){
 		putTex(textureCube);
 
 		// General axises
-		drawCube(cubes[idxChain + 1]->getMat());
+		drawCube(cubes[chainLength + 1]->getMat());
 		buildGenAxises();
 
 		drawCube(targetCube);
@@ -125,7 +125,7 @@ int main(int argc, char** argv){
 		mat4 matrix;
 		textureChain = addTex(width, height, "res/textures/box0.bmp");
 
-		for (int i = 0; i < idxChain; i++) {
+		for (int i = 0; i < chainLength; i++) {
 			matrix = cubes[i]->getMat() * cubes[0]->scaleMat;
 			MVP = P * matrix;
 			shader.Bind();
@@ -138,9 +138,9 @@ int main(int argc, char** argv){
 		display.SwapBuffers();
 		glfwPollEvents();
 
-		if (solver) {
+		if (isSolverShouldRun) {
 			IKsolver();
-			numOfAction = (numOfAction + 1) % (idxChain);
+			idxCurrCubeSolver = (idxCurrCubeSolver + 1) % (chainLength);
 			Sleep(3);
 		}
 	}

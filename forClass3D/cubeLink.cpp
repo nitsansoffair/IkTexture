@@ -5,21 +5,21 @@ cubeLink::cubeLink(cubeLink* father, int idx) {
 	this->theta = 0;
 	this->idx = idx;
 
-	this->trans = glm::translate(mat4(1), vec3(0.0, 2.0 * K, 0.0));
-	this->trans_op = glm::translate(mat4(1), vec3(0.0, 2.0 * K, 0.0));
+	this->trans = glm::translate(mat4(1), vec3(0.0f, 2.0f * K, 0.0f));
+	this->trans_op = glm::translate(mat4(1), vec3(0.0f, 2.0f * K, 0.0f));
 
 	this->father = father;
 	this->mat = this->rotX = this->rotY = mat4(1);
 }
 
 cubeLink::cubeLink(int idx, mat4 mat) {
+	this->theta = 0;
 	this->idx = idx;
 
-	this->trans = glm::translate(mat, vec3(0.0, -K * 2.0, 0.0));
+	this->trans = glm::translate(mat, vec3(0.0f, -K * 2.0f, 0.0f));
 	this->trans_op = glm::inverse(trans);
 	
 	this->mat = mat;
-
 	this->rotX = this->rotY = mat4(1);
 }
 
@@ -51,15 +51,15 @@ void cubeLink::upTheta(float theta, char axis){
 
 	switch (axis) {
 		case 'x': {
-			this->rotX = glm::rotate(this->rotX, theta, vec3(1.0, 0.0, 0.0));
+			this->rotX = glm::rotate(this->rotX, theta, vec3(1.0f, 0.0f, 0.0f));
 		} break;
 
 		case 'y': {
-			this->rotY = glm::rotate(this->rotY, theta, vec3(0.0, 1.0, 0.0));;
+			this->rotY = glm::rotate(this->rotY, theta, vec3(0.0f, 1.0f, 0.0f));
 		} break;
 
 		case 'z': {
-			this->rot = glm::rotate(mat4(1), theta, vec3(0.0, 0.0, 1.0));;
+			this->rot = glm::rotate(mat4(1), theta, vec3(0.0f, 0.0f, 1.0f));
 		} break;
 	}
 
@@ -67,22 +67,17 @@ void cubeLink::upTheta(float theta, char axis){
 }
 
 void cubeLink::upThetaSolver(vec3 vec, float thetaX){
-	mat4 rotHelper;
-	rotHelper = glm::rotate(mat4(1), thetaX, -vec);;
-	this->rot = rotHelper * this->rot;
+	this->rot = glm::rotate(mat4(1), thetaX, -vec) * this->rot;
 }
 
 
 mat4 cubeLink::getMat() {
-	if (idx == 0 || father == NULL) {
-		return this->mat * this->trans * this->rot  * this->trans_op;
+	if (!idx || !father) {
+		return this->mat * this->trans * this->rot * this->trans_op;
 	}
-	else {
-		return father->getMat() * this->trans * this->rot * this->trans_op;
-	}
+	return father->getMat() * this->trans * this->rot * this->trans_op;
 }
 
 void cubeLink::moveScene(vec3 direction, float theta) {
-	mat4 rotHelper = glm::rotate(mat4(1), theta, direction);
-	this->mat = rotHelper * this->mat;
+	this->mat = glm::rotate(mat4(1), theta, direction) * this->mat;
 }

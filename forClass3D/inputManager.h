@@ -24,31 +24,32 @@ static const int DISPLAY_WIDTH = 800, DISPLAY_HEIGHT = 800;
 
 #define PI 3.14159265
 
-const float K = 1.025f * 2.0f,
-Far = 100.0f,
-Near = 0.1f,
-CAM_ANGLE = 60.0f,
-relation = DISPLAY_HEIGHT / DISPLAY_WIDTH;
+const float K = 2.05f,
+	Far = 100.0f,
+	Near = 0.1f,
+	CAM_ANGLE = 60.0f,
+	relation = DISPLAY_HEIGHT / DISPLAY_WIDTH;
 
-int n = -1,
-pervN = -1,
-backgroundPick = 0,
-idxChain = 4,
-numOfAction = 0;
+const int chainLength = 4;
+
+int chosenObjIdx = -1,
+	prevChosenObjIdx = -1,
+	backgroundPick = 0,
+	idxCurrCubeSolver = 0;
 
 float xPrev,
-yPrev,
-xLoc = 0,
-yLoc = 0,
-depth[4],
-maxDist = 2 * K * (int)idxChain;
+	yPrev,
+	xLoc = 0,
+	yLoc = 0,
+	depth[4],
+	maxDist = 2.0f * K * (int)chainLength - K * 1.2f;
 
 unsigned char Data[4];
 
-bool rightClick = false,
-firstTime = true,
-solver = false,
-space = false;
+bool mouseRightClick = false,
+	firstTimeKeyRight = true,
+	isSolverShouldRun = false,
+	isSpacePressed = false;
 
 Display display(DISPLAY_WIDTH, DISPLAY_HEIGHT, "OpenGL");
 
@@ -114,27 +115,27 @@ GLint viewport[4];
 cubeLink* cubes[10];
 
 vec3 location = vec3(0, 0, 0),
-saveLoc = location,
-pos = vec3(0, 0, -35),
-forwardVec = glm::vec3(0.0f, 0.0f, 1.0f),
-up = glm::vec3(0.0f, 1.0f, 0.0f),
-side = glm::vec3(1.0f, 0.0f, 0.0f);
+	saveLoc = location,
+	pos = vec3(0, 0, -35),
+	forwardVec = glm::vec3(0.0f, 0.0f, 1.0f),
+	up = glm::vec3(0.0f, 1.0f, 0.0f),
+	side = glm::vec3(1.0f, 0.0f, 0.0f);
 
 mat4 matrices[10],
-targetCube,
-mulMat = glm::translate(mat4(1), vec3(4 * K, 0.0f, 0.0f)),
-P1 = glm::perspective(60.0f, (float)DISPLAY_WIDTH / (float)DISPLAY_HEIGHT, 0.1f, 100.0f),
-M = glm::mat4(1),
-M1 = glm::translate(mat4(1), vec3(3, 0, 0)),
-M2 = glm::translate(mat4(1), vec3(-3, 0, 0)),
-P = P1 * glm::lookAt(pos, pos + forwardVec, up),
-MVP = P * M;
+	targetCube,
+	mulMatTarget = glm::translate(mat4(1), vec3(4 * K, 0.0f, 0.0f)),
+	P1 = glm::perspective(60.0f, (float)DISPLAY_WIDTH / (float)DISPLAY_HEIGHT, 0.1f, 100.0f),
+	M = glm::mat4(1),
+	M1 = glm::translate(mat4(1), vec3(3, 0, 0)),
+	M2 = glm::translate(mat4(1), vec3(-3, 0, 0)),
+	P = P1 * glm::lookAt(pos, pos + forwardVec, up),
+	MVP = P * M;
 
 
 // Axises
 void buildGenAxises() {
 	glLineWidth(2.0f);
-	glColor3f(1.0f, 0.0f, 0.0f);
+	glColor3f(0.0f, 0.0f, 0.0f);
 	glBegin(GL_LINES);
 
 	glVertex3f(-K * 6.0f, K * 0.0f, 0.0f);	// X axis, General
@@ -149,7 +150,7 @@ void buildGenAxises() {
 void buildAxises() {
 	// Lines of Chain
 	glLineWidth(1.5);
-	glColor3f(1.0f, 0.0f, 0.0f);
+	glColor3f(0.0f, 0.0f, 0.0f);
 	glBegin(GL_LINES);
 
 	glVertex3f(K * 0.0f, K * 1.0f, 0.0f);		// Y axis, High
@@ -187,20 +188,20 @@ void initCubes() {
 	cubes[0] = new cubeLink(0, mat4(1));
 	matrices[0] = cubes[0]->mat;
 
-	for (int i = 1; i < idxChain; i++) {
+	for (int i = 1; i < chainLength; i++) {
 		cubes[i] = new cubeLink(cubes[i - 1], i);
 		matrices[i] = cubes[i]->mat;
 	}
 
-	targetCube = (mat4(1) * mulMat);
-	cubes[idxChain] = new cubeLink(4, targetCube);
-	cubes[idxChain + 1] = new cubeLink(0, mat4(1));
+	targetCube = (mat4(1) * mulMatTarget);
+	cubes[chainLength] = new cubeLink(4, targetCube);
+	cubes[chainLength + 1] = new cubeLink(0, mat4(1));
 }
 
-void rotateTargetCube(vec3 rotateVec, float theta) {
-	mat4 rot = glm::rotate(mat4(1), theta, rotateVec);
-	vec3 V = vec3(1 * K, 0.0f, 0.0f);
-	mat4 trans = glm::translate(mat4(1), -V);
+void rotateTargetCube(vec3 rotVec, float theta) {
+	mat4 rot = glm::rotate(mat4(1), theta, rotVec);
+	vec3 transVec = vec3(1.0f * K, 0.0f, 0.0f);
+	mat4 trans = glm::translate(mat4(1), -transVec);
 	mat4 transOp = glm::inverse(trans);
 	targetCube = trans * rot * transOp * targetCube;
 }
@@ -211,52 +212,47 @@ void rotate(char direction, float theta) {
 	char axis = 'x';
 	int dirc = -1;
 	if (direction == 'R' || direction == 'L') {
-		rotateDirc = vec3(0, 1, 0);
-		translateDirc = vec3(dirc, 0, 0);
+		rotateDirc = vec3(0.0f, 1.0f, 0.0f);
+		translateDirc = vec3(dirc, 0.0f, 0.0f);
 		axis = 'y';
 		if (direction == 'L') {
-			theta = -theta;
-			dirc = -dirc;
+			theta *= -1;
+			dirc *= -1;
 		}
-	}
-	else {
-		rotateDirc = vec3(1, 0, 0);
-		axis = 'x';
+	} else {
+		rotateDirc = vec3(1.0f, 0.0f, 0.0f);
 		if (direction == 'D') {
-			theta = -theta;
-			dirc = -dirc;
+			theta *= -1;
+			dirc *= -1;
 		}
 	}
-	if (n >= 0 && n < idxChain) {
-		cubes[n]->upTheta(theta, axis);
-	}
-	else if (n == idxChain) {
+	if (chosenObjIdx >= 0 && chosenObjIdx < chainLength) {
+		cubes[chosenObjIdx]->upTheta(theta, axis);
+	} else if (chosenObjIdx == chainLength) {
 		targetCube = glm::rotate(targetCube, theta, rotateDirc);
-	}
-	else if (n == idxChain + 1) {
+	} else if (chosenObjIdx == chainLength + 1) {
 		mat4 rot = glm::rotate(mat4(1), theta, rotateDirc);
 		cubes[0]->moveScene(rotateDirc, theta);
 		targetCube = rot * targetCube;
-		cubes[idxChain + 1]->mat = rot * cubes[idxChain + 1]->mat;  // Rotate general axis
+		cubes[chainLength + 1]->mat = rot * cubes[chainLength + 1]->mat;  // Rotate general axis
 	}
 }
 
-void move(char direction, float theta, float xPos, float yPos, bool mouse) {
-	vec2 location = getLoction();
+void move(char direction, float theta, float newXpos, float newYpos, bool mouse) {
+	vec2 currLoc = getLoction();
 	glGetIntegerv(GL_VIEWPORT, viewport);
-	glReadPixels((GLint)xPos, (GLint)(DISPLAY_HEIGHT - yPos - 1.0f), (GLsizei)1.0f, (GLsizei)1.0f, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
+	glReadPixels((GLint)newXpos, (GLint)(DISPLAY_HEIGHT - newYpos - 1.0f), (GLsizei)1.0f, (GLsizei)1.0f, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
 
 	float z = Far + depth[0] * (Near - Far);
-	float yRel = yPos - location[1];
-	float xRel = xPos - location[0];
+	float yRel = newYpos - currLoc[1];
+	float xRel = newXpos - currLoc[0];
 	float transX = 1.0f, transY = 1.0f;
 	int dirc = -1;
 
 	if (mouse) {
 		transX = 1.0f * relation * xRel / (float)(DISPLAY_WIDTH)* Near * 2.0f * (float)tan(CAM_ANGLE * PI / 360.0f) * (Far / z);
 		transY = 1.0f * yRel / (float)(DISPLAY_HEIGHT)* Near * 2.0f * tan(CAM_ANGLE * (float)PI / 360.0f) * (Far / z);
-	}
-	else if (direction == 'L' || direction == 'U') {
+	} else if (direction == 'L' || direction == 'U') {
 		dirc *= -1;
 	}
 
@@ -266,86 +262,70 @@ void move(char direction, float theta, float xPos, float yPos, bool mouse) {
 	if (abs(transY) > 1.5) {
 		transY /= 2;
 	}
-	if (space) {
-		solver = true;
+	if (isSpacePressed) {
+		isSolverShouldRun = true;
 	}
+
 	vec3 translateDirc;
 
 	if (direction == 'R' || direction == 'L') {
-		translateDirc = vec3(dirc * transX, 0, 0);
-		if (direction == 'L') {
-			translateDirc = vec3(dirc * transX, 0, 0);
-		}
-	}
-	else if (direction == 'D' || direction == 'U') {
+		translateDirc = vec3(dirc * transX, 0.0f, 0.0f);
+	} else if (direction == 'D' || direction == 'U') {
 		dirc *= -1;
-		translateDirc = vec3(0, dirc * transY, 0);
-		if (direction == 'D') {
-			translateDirc = vec3(0, dirc * transY, 0);
-		}
-		translateDirc = -translateDirc;
-	}
-	else {
-		translateDirc = vec3(0, 0, dirc);
+		translateDirc = vec3(0.0f, dirc * transY, 0.0f) * (-1.0f);
+	} else {
 		if (direction == 'F') {
 			dirc *= -1;
-			translateDirc = vec3(0, 0, dirc);
 		}
+		translateDirc = vec3(0.0f, 0.0f, dirc);
 	}
 
 	mat4 trans = glm::translate(mat4(1), translateDirc);
-	if (n >= 0 && n < idxChain) {
+	if (chosenObjIdx >= 0 && chosenObjIdx < chainLength) {
 		if (direction == 'F' || direction == 'B') {
 			cubes[0]->mat = trans * cubes[0]->mat;
-		}
-		else if (mouse) {
-			if (abs(xPos - location[0]) > 0.1 || abs(yPos - location[1]) > 0.1) {
+		} else if (mouse) {
+			if (abs(newXpos - currLoc[0]) > 0.1 || abs(newYpos - currLoc[1]) > 0.1) {
 				cubes[0]->mat = trans * cubes[0]->mat;
 				if (direction == 'D' || direction == 'U') {
-					setLocation(location[0], yPos);
-				}
-				else {
-					setLocation(xPos, location[1]);
+					setLocation(currLoc[0], newYpos);
+				} else {
+					setLocation(newXpos, currLoc[1]);
 				}
 			}
-		}
-		else {
-			setLocation(xPos, yPos);
+		} else {
+			setLocation(newXpos, newYpos);
 			cubes[0]->mat = trans * cubes[0]->mat;
 		}
-	}
-	else if (n == idxChain) {
+	} else if (chosenObjIdx == chainLength) {
 		if (direction == 'F' || direction == 'B') {
 			targetCube = trans * targetCube;
-		}
-		else if (mouse) {
-			if (abs(xPos - location[0]) > 0.1 || abs(yPos - location[1]) > 0.1) {
+		} else if (mouse) {
+			if (abs(newXpos - currLoc[0]) > 0.1 || abs(newYpos - currLoc[1]) > 0.1) {
 				targetCube = trans * targetCube;
 				if (direction == 'D' || direction == 'U') {
-					setLocation(location[0], yPos);
-				}
-				else {
-					setLocation(xPos, location[1]);
+					setLocation(currLoc[0], newYpos);
+				} else {
+					setLocation(newXpos, currLoc[1]);
 				}
 			}
-		}
-		else {
-			setLocation(xPos, yPos);
+		} else {
+			setLocation(newXpos, newYpos);
 			targetCube = trans * targetCube;
 		}
 	}
 }
 
-float calcDist(int cubeIdx) {
+float calcDistTipFrom(int cubeIdx) {
 	// Calculate distance between two cubes (Tip & Destination)
-	mat4 tipCube = cubes[cubeIdx]->getMat();
-	tipCube = glm::translate(tipCube, vec3(0.0, K, 0.0));
+	mat4 tipCubeMat = cubes[cubeIdx]->getMat();
+	mat4 tipCube = glm::translate(tipCubeMat, vec3(0.0f, K, 0.0f));
+	
 	// Takes 3rd row of 2 matrices, to Calc distance between 2 Points
 	vec3 tipLoc = vec3(tipCube[3][0], tipCube[3][1], tipCube[3][2]);
 	vec3 destLoc = vec3(targetCube[3][0], targetCube[3][1], targetCube[3][2]);
-	float dist = sqrt(pow(tipLoc[0] - destLoc[0], 2) + pow(tipLoc[1] - destLoc[1], 2) + pow(tipLoc[2] - destLoc[2], 2));
 
-	return dist;
+	return sqrt(pow(tipLoc[0] - destLoc[0], 2) + pow(tipLoc[1] - destLoc[1], 2) + pow(tipLoc[2] - destLoc[2], 2));
 }
 
 
@@ -357,7 +337,7 @@ void pick() {
 	unsigned char data[4];
 	display.Clear(1.0f, 1.0f, 1.0f, 1.0f);
 
-	for (int i = 0; i < idxChain; i++) {
+	for (int i = 0; i < chainLength; i++) {
 		color = vec3(1.0f / (i + 3), 0.0f, 0.0f);
 		matrices[i] = cubes[i]->getMat() * cubes[0]->scaleMat;
 		MVP = P * matrices[i];
@@ -378,30 +358,28 @@ void pick() {
 	int pickColor = data[0];
 
 	if (pickColor == 255) {
-		n = idxChain + 1;
+		chosenObjIdx = chainLength + 1;
 		backgroundPick++;
-	}
-	else if (pickColor == 128) {
-		n = idxChain;
+	} else if (pickColor == 128) {
+		chosenObjIdx = chainLength;
 		backgroundPick = 0;
-		pervN = idxChain;
-	}
-	else {
-		for (int i = 0; i < idxChain; i++) {
+		prevChosenObjIdx = chainLength;
+	} else {
+		for (int i = 0; i < chainLength; i++) {
 			float objColor = float(255.0) / float(i + 3.0);
-			int rintt = (int)rint(objColor - 0.0000000001);
-			if (pickColor == rintt) {
-				n = i;
-				pervN = i;
+			int roundedObjColor = (int)rint(objColor - 0.0000000001);
+			if (pickColor == roundedObjColor) {
+				chosenObjIdx = i;
+				prevChosenObjIdx = i;
 				backgroundPick = 0;
 				break;
 			}
 		}
 	}
 
-	if ((n == idxChain + 1 && pervN != idxChain + 1 && pervN != -1) || backgroundPick >= 2) {
-		n = idxChain + 2;
-		pervN = idxChain + 1;
+	if ((chosenObjIdx == chainLength + 1 && prevChosenObjIdx != chainLength + 1 && prevChosenObjIdx != -1) || backgroundPick >= 2) {
+		chosenObjIdx = chainLength + 2;
+		prevChosenObjIdx = chainLength + 1;
 		backgroundPick = 0;
 	}
 }
@@ -409,32 +387,33 @@ void pick() {
 
 // Solver
 void IKsolver() {
-	int currMat;
-	// If Distance bigger than delta, and less than a "Very big number"
 	// cubes[3] ::= <tipOfChain>, cubes[4] ::= <destCube>
-	float currDistance = calcDist(0);
-	float dist = calcDist(idxChain - 1);
-	std::cout << "Distance: " << (dist) << std::endl;
-	if (dist < 0.3 || currDistance + K >= maxDist) {
-		solver = false;
-		if (currDistance + K >= maxDist) {
+	float distFromTail = calcDistTipFrom(0);
+	float distFromTip = calcDistTipFrom(chainLength - 1);
+	std::cout << "Distance: " << (distFromTip) << std::endl;
+	if (distFromTip < 0.3 || distFromTail >= maxDist) {
+		isSolverShouldRun = false;
+		if (distFromTail >= maxDist) {
 			std::cout << "Cannot reach" << std::endl;
 		} else {
-			std::cout << "Distance: " << (dist) << std::endl;
+			std::cout << "Distance: " << (distFromTip) << std::endl;
 		}
-		numOfAction = 0;
+		idxCurrCubeSolver = 0;
 	} else {
-		currMat = idxChain - 1 - numOfAction;
-		mat4 topChain = cubes[idxChain - 1]->getMat();
-		topChain = glm::translate(topChain, vec3(0, K, 0));
-		mat4 currChain = cubes[currMat]->getMat();
-		currChain = glm::translate(currChain, vec3(0, -K, 0));
+		int currMatIdx = chainLength - idxCurrCubeSolver - 1;
+		mat4 topChainMat = cubes[chainLength - 1]->getMat();
+		mat4 topChain = glm::translate(topChainMat, vec3(0.0f, K, 0.0f));
+
+		mat4 currChainMat = cubes[currMatIdx]->getMat();
+		mat4 currChain = glm::translate(currChainMat, vec3(0.0f, -K, 0.0f));
+
 		vec3 v1 = normalize(vec3(topChain[3][0] - currChain[3][0], topChain[3][1] - currChain[3][1], topChain[3][2] - currChain[3][2]));
 		vec3 v2 = normalize(vec3(targetCube[3][0] - currChain[3][0], targetCube[3][1] - currChain[3][1], targetCube[3][2] - currChain[3][2]));
+
 		float cosA = glm::clamp(dot(v1, v2), -0.99f, 0.99f);
 		float thetaX = acos(cosA);
 		vec3 plane = cross(v1, v2);
-		cubes[currMat]->upThetaSolver(plane, (-thetaX * 180.0f / (5.0f * (float)PI)));
+		cubes[currMatIdx]->upThetaSolver(plane, (-thetaX * 180.0f / (5.0f * (float)PI)));
 	}
 }
 
@@ -449,43 +428,43 @@ void key_callback(GLFWwindow* window, int key, int scanCode, int action, int mod
 
 		case GLFW_KEY_SPACE:
 			if (action == GLFW_PRESS) {
-				solver = !solver;
-				space = !space;
-				numOfAction = 0;
+				isSolverShouldRun = !isSolverShouldRun;
+				isSpacePressed = !isSpacePressed;
+				idxCurrCubeSolver = 0;
 			} break;
 
 		case GLFW_KEY_RIGHT:
 			if (action == GLFW_REPEAT || action == GLFW_PRESS)
-				if (rightClick) {
-					move('R', 5.0, 0.0, 0.0, false);
+				if (mouseRightClick) {
+					move('R', 5.0f, 0.0f, 0.0f, false);
 				} else {
-					rotate('R', 5.0);
+					rotate('R', 5.0f);
 				}
-			firstTime = true;
+			firstTimeKeyRight = true;
 			break;
 
 		case GLFW_KEY_LEFT:
 			if (action == GLFW_REPEAT || action == GLFW_PRESS)
-				if (rightClick) {
-					move('L', 5.0, 0.0, 0.0, false);
+				if (mouseRightClick) {
+					move('L', 5.0f, 0.0f, 0.0f, false);
 				} else {
-					rotate('L', 5.0);
+					rotate('L', 5.0f);
 				} break;
 
 		case GLFW_KEY_UP:
 			if (action == GLFW_REPEAT || action == GLFW_PRESS)
-				if (rightClick) {
-					move('U', 5.0, 0.0, 0.0, false);
+				if (mouseRightClick) {
+					move('U', 5.0f, 0.0f, 0.0f, false);
 				} else {
-					rotate('U', 5.0);
+					rotate('U', 5.0f);
 				} break;
 
 		case GLFW_KEY_DOWN:
 			if (action == GLFW_REPEAT || action == GLFW_PRESS)
-				if (rightClick) {
-					move('D', 5.0, 0.0, 0.0, false);
+				if (mouseRightClick) {
+					move('D', 5.0f, 0.0f, 0.0f, false);
 				} else {
-					rotate('D', 5.0);
+					rotate('D', 5.0f);
 				} break;
 
 		case GLFW_MOUSE_BUTTON_LEFT:
@@ -497,67 +476,63 @@ void key_callback(GLFWwindow* window, int key, int scanCode, int action, int mod
 		}
 }
 
-void cursorPositionCallback(GLFWwindow* window, double xPos, double yPos) {
-	xPrev = (float)xPos;
-	yPrev = (float)yPos;
+void cursorPositionCallback(GLFWwindow* window, double newXpos, double newYpos) {
+	xPrev = (float)newXpos;
+	yPrev = (float)newYpos;
 
-	if (firstTime) {
-		setLocation((float)xPos, (float)yPos);
-		firstTime = false;
+	if (firstTimeKeyRight) {
+		setLocation((float)newXpos, (float)newYpos);
+		firstTimeKeyRight = false;
 	}
 
-	vec2 location = getLoction();
-	if (xPos > location[0]) {
-		if (rightClick) {
-			move('R', 1.0, (float)xPos, (float)yPos, true);
+	vec2 currLoc = getLoction();
+	if (newXpos > currLoc[0]) {
+		if (mouseRightClick) {
+			move('R', 1.0f, (float)newXpos, (float)newYpos, true);
 		} else {
-			rotate('R', 1.0);
+			rotate('R', 1.0f);
 		}
-	} else if (xPos < location[0]) {
-		if (rightClick) {
-			move('L', 1.0, (float)xPos, (float)yPos, true);
-		}
-		else {
-			rotate('L', 1.0);
+	} else if (newXpos < currLoc[0]) {
+		if (mouseRightClick) {
+			move('L', 1.0f, (float)newXpos, (float)newYpos, true);
+		} else {
+			rotate('L', 1.0f);
 		}
 	}
 
-	if (yPos > location[1]) {
-		if (rightClick) {
-			move('D', 1.0, (float)xPos, (float)yPos, true);
+	if (newYpos > currLoc[1]) {
+		if (mouseRightClick) {
+			move('D', 1.0f, (float)newXpos, (float)newYpos, true);
+		} else {
+			rotate('D', 1.0f);
 		}
-		else {
-			rotate('D', 1.0);
-		}
-	} else if (yPos < location[1]) {
-		if (rightClick) {
-			move('U', 1.0, (float)xPos, (float)yPos, true);
-		}
-		else {
-			rotate('U', 1.0);
+	} else if (newYpos < currLoc[1]) {
+		if (mouseRightClick) {
+			move('U', 1.0f, (float)newXpos, (float)newYpos, true);
+		} else {
+			rotate('U', 1.0f);
 		}
 	}
 }
 
-void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods){
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		rightClick = false;
-		pick();
-	} else if ((button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)) {
-		rightClick = true;
-		pick();
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods){
+	if (action == GLFW_PRESS) {
+		if (button == GLFW_MOUSE_BUTTON_LEFT) {
+			mouseRightClick = false;
+			pick();
+		} else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+			mouseRightClick = true;
+			pick();
+		}
 	}
 }
 
 void scrollCallback(GLFWwindow *window, double xOffset, double yOffset) {
 	if (yOffset == 1) {
-		move('F', 1.0, 0, 0, false);
+		move('F', 1.0f, 0.0f, 0.0f, false);
 	} else {
-		move('B', 1.0, 0, 0, false);
+		move('B', 1.0, 0.0f, 0.0f, false);
 	}
 };
 
 #endif
-
-
-
