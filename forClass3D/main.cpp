@@ -30,7 +30,7 @@ const char* result_string_pointer = "SOIL initialized";
 void drawCube(mat4 toDrawMat) {
 	MVP = P * toDrawMat;
 	shader.Bind();
-	color = vec3(1.0f, 1.0f, 1.0f);
+	color = vec3(0.0f, 0.0f, 0.0f);
 	shader.Update(MVP, toDrawMat, color);
 }
 
@@ -104,6 +104,7 @@ int main(int argc, char** argv){
 
 	initCubes();
 	vec3 color;
+
 	while (!glfwWindowShouldClose(display.m_window)){
 		glGetIntegerv(GL_VIEWPORT, viewport);
 		glReadPixels((GLint)location[0], (GLint)(DISPLAY_HEIGHT - location[1] - 1.0f), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
@@ -114,11 +115,7 @@ int main(int argc, char** argv){
 
 		// Add texture
 		putTex(textureCube);
-
-		// General axises
 		drawCube(cubes[chainLength + 1]->getMat());
-		buildGenAxises();
-
 		drawCube(targetCube);
 		mesh.Draw();
 
@@ -130,7 +127,6 @@ int main(int argc, char** argv){
 			MVP = P * matrix;
 			shader.Bind();
 			shader.Update(MVP, matrix, color);
-			buildAxises();
 			putTex(textureChain);
 			mesh.Draw();
 		}

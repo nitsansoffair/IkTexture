@@ -31,8 +31,8 @@ public:
 	cubeLink(cubeLink& other);
 	~cubeLink() {};
 
-	void upTheta(float theta, char axis);
-	void upThetaSolver(vec3 vec, float thetaX);
+	void prepRotate(float theta, char axis);
+	void prepRotateSolver(vec3 vec, float thetaX);
 
 	mat4 getMat();
 	void moveScene(vec3 direction, float theta);

@@ -2,6 +2,7 @@
 #ifndef inputManager_h_
 #define inputManager_h_
 
+// Includes
 #include "GLFW\glfw3.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
@@ -24,6 +25,7 @@ static const int DISPLAY_WIDTH = 800, DISPLAY_HEIGHT = 800;
 
 #define PI 3.14159265
 
+// Consts & Camera properties
 const float K = 2.05f,
 Far = 100.0f,
 Near = 0.1f,
@@ -32,21 +34,24 @@ relation = DISPLAY_HEIGHT / DISPLAY_WIDTH;
 
 const int chainLength = 4;
 
+// Picking
 int chosenObjIdx = -1,
 	prevChosenObjIdx = -1,
 	backgroundPick = 0,
 	idxCurrCubeSolver = 0;
 
+// Mouse & Solver & Init cubeLink Variable
 float xPrev,
 	yPrev,
 	xLoc = 0,
 	yLoc = 0,
 	depth[4],
-	maxDist = 2.0f * K * (int)chainLength - K * 1.2f,
+	maxDist = 2.0f * K * (float)chainLength - K * 1.2f,
 	cubeLink::K = 1.025f;
 
 unsigned char Data[4];
 
+// Solver
 bool mouseRightClick = false,
 	firstTimeKeyRight = true,
 	isSolverShouldRun = false,
@@ -55,32 +60,32 @@ bool mouseRightClick = false,
 Display display(DISPLAY_WIDTH, DISPLAY_HEIGHT, "OpenGL");
 
 Vertex vertices[] = {	
-	Vertex(glm::vec3(-1, -1, -1), glm::vec2(1, 0), glm::vec3(0, 0, -1),glm::vec3(1, 1, 0)),  /* r & g wall */
+	Vertex(glm::vec3(-1, -1, -1), glm::vec2(1, 0), glm::vec3(0, 0, -1),glm::vec3(1, 1, 0)),  // Red & Green Wall
 	Vertex(glm::vec3(-1, 1, -1), glm::vec2(0, 0), glm::vec3(0, 0, -1),glm::vec3(1, 1, 0)),
 	Vertex(glm::vec3(1, 1, -1), glm::vec2(0, 1), glm::vec3(0, 0, -1),glm::vec3(1, 1, 0)),
 	Vertex(glm::vec3(1, -1, -1), glm::vec2(1, 1), glm::vec3(0, 0, -1),glm::vec3(1, 1, 0)),
 
-	Vertex(glm::vec3(-1, -1, 1), glm::vec2(1, 0), glm::vec3(0, 0, 1),glm::vec3(0, 1, 1)),  /* g & b wall */
+	Vertex(glm::vec3(-1, -1, 1), glm::vec2(1, 0), glm::vec3(0, 0, 1),glm::vec3(0, 1, 1)),  // Green & Blue Wall
 	Vertex(glm::vec3(-1, 1, 1), glm::vec2(0, 0), glm::vec3(0, 0, 1),glm::vec3(0, 1, 1)),
 	Vertex(glm::vec3(1, 1, 1), glm::vec2(0, 1), glm::vec3(0, 0, 1),glm::vec3(0, 1, 1)),
 	Vertex(glm::vec3(1, -1, 1), glm::vec2(1, 1), glm::vec3(0, 0, 1),glm::vec3(0, 1, 1)),
 
-	Vertex(glm::vec3(-1, -1, -1), glm::vec2(0, 1), glm::vec3(0, -1, 0),glm::vec3(0, 0, 1)),  /* b wall */
+	Vertex(glm::vec3(-1, -1, -1), glm::vec2(0, 1), glm::vec3(0, -1, 0),glm::vec3(0, 0, 1)),  // Blue Wall
 	Vertex(glm::vec3(-1, -1, 1), glm::vec2(1, 1), glm::vec3(0, -1, 0),glm::vec3(0, 0, 1)),
 	Vertex(glm::vec3(1, -1, 1), glm::vec2(1, 0), glm::vec3(0, -1, 0),glm::vec3(0, 0, 1)),
 	Vertex(glm::vec3(1, -1, -1), glm::vec2(0, 0), glm::vec3(0, -1, 0),glm::vec3(0, 0, 1)),
 
-	Vertex(glm::vec3(-1, 1, -1), glm::vec2(0, 1), glm::vec3(0, 1, 0),glm::vec3(0, 1, 0)),  /* green wall */
+	Vertex(glm::vec3(-1, 1, -1), glm::vec2(0, 1), glm::vec3(0, 1, 0),glm::vec3(0, 1, 0)),  // Green Wall
 	Vertex(glm::vec3(-1, 1, 1), glm::vec2(1, 1), glm::vec3(0, 1, 0),glm::vec3(0, 1, 0)),
 	Vertex(glm::vec3(1, 1, 1), glm::vec2(1, 0), glm::vec3(0, 1, 0),glm::vec3(0, 1, 0)),
 	Vertex(glm::vec3(1, 1, -1), glm::vec2(0, 0), glm::vec3(0, 1, 0),glm::vec3(0, 1, 0)),
 
-	Vertex(glm::vec3(-1, -1, -1), glm::vec2(1, 1), glm::vec3(-1, 0, 0),glm::vec3(1, 0, 0)),  /* red wall */
+	Vertex(glm::vec3(-1, -1, -1), glm::vec2(1, 1), glm::vec3(-1, 0, 0),glm::vec3(1, 0, 0)),  // Red Wall
 	Vertex(glm::vec3(-1, -1, 1), glm::vec2(1, 0), glm::vec3(-1, 0, 0),glm::vec3(1, 0, 0)),
 	Vertex(glm::vec3(-1, 1, 1), glm::vec2(0, 0), glm::vec3(-1, 0, 0),glm::vec3(1, 0, 0)),
 	Vertex(glm::vec3(-1, 1, -1), glm::vec2(0, 1), glm::vec3(-1, 0, 0),glm::vec3(1, 0, 0)),
 
-	Vertex(glm::vec3(1, -1, -1), glm::vec2(1, 1), glm::vec3(1, 0, 0),glm::vec3(1, 0, 1)),  /* r & b wall */
+	Vertex(glm::vec3(1, -1, -1), glm::vec2(1, 1), glm::vec3(1, 0, 0),glm::vec3(1, 0, 1)),  // Red & Blue Wall
 	Vertex(glm::vec3(1, -1, 1), glm::vec2(1, 0), glm::vec3(1, 0, 0),glm::vec3(1, 0, 1)),
 	Vertex(glm::vec3(1, 1, 1), glm::vec2(0, 0), glm::vec3(1, 0, 0),glm::vec3(1, 0, 1)),
 	Vertex(glm::vec3(1, 1, -1), glm::vec2(0, 1), glm::vec3(1, 0, 0),glm::vec3(1, 0, 1))
@@ -88,7 +93,7 @@ Vertex vertices[] = {
 
 unsigned int indices[] = {
 	0, 1, 2,
-	0, 2, 3,		// 1st square
+	0, 2, 3,		// 1st Square
 
 	6, 5, 4,
 	7, 6, 4,
@@ -102,19 +107,22 @@ unsigned int indices[] = {
 	16, 17, 18,
 	16, 18, 19,
 
-	22, 21, 20,		// 6rd square
+	22, 21, 20,		// 6rd Square
 	23, 22, 20
 };
 
 Mesh mesh(vertices, sizeof(vertices) / sizeof(vertices[0]), indices, sizeof(indices) / sizeof(indices[0]));
 
+// Shaders
 Shader shader("./res/shaders/basicShader"),
 colorPickShader("./res/shaders/colorPickShader");
 
 GLint viewport[4];
 
+// Cubes
 cubeLink* cubes[10];
 
+// Vecs
 vec3 location = vec3(0, 0, 0),
 	saveLoc = location,
 	pos = vec3(0, 0, -35),
@@ -122,82 +130,43 @@ vec3 location = vec3(0, 0, 0),
 	up = glm::vec3(0.0f, 1.0f, 0.0f),
 	side = glm::vec3(1.0f, 0.0f, 0.0f);
 
+// Matrices
 mat4 matrices[10],
 	targetCube,
-	mulMatTarget = glm::translate(mat4(1), vec3(4 * K, 0.0f, 0.0f)),
+	mulMatTarget = glm::translate(mat4(1), vec3(4.0f * K, 0.0f, 0.0f)),
 	P1 = glm::perspective(60.0f, (float)DISPLAY_WIDTH / (float)DISPLAY_HEIGHT, 0.1f, 100.0f),
 	M = glm::mat4(1),
-	M1 = glm::translate(mat4(1), vec3(3, 0, 0)),
-	M2 = glm::translate(mat4(1), vec3(-3, 0, 0)),
+	M1 = glm::translate(mat4(1), vec3(3.0f, 0.0f, 0.0f)),
+	M2 = glm::translate(mat4(1), vec3(-3.0f, 0.0f, 0.0f)),
 	P = P1 * glm::lookAt(pos, pos + forwardVec, up),
 	MVP = P * M,
 	cubeLink::scaleMat = glm::scale(vec3(1.0f, 2.0f, 1.0f));
 
 
-// Axises
-void buildGenAxises() {
-	glLineWidth(2.0f);
-	glColor3f(0.0f, 0.0f, 0.0f);
-	glBegin(GL_LINES);
-
-	glVertex3f(-K * 6.0f, K * 0.0f, 0.0f);	// X axis, General
-	glVertex3f(K * 6.0f, K * 0.0f, 0.0f);
-
-	glVertex3f(K * 0.0f, K * 6.0f, 0.0f);  // Y axis, General
-	glVertex3f(K * 0.0f, K * -6.0f, 0.0f);
-
-	glEnd();
-}
-
-void buildAxises() {
-	// Lines of Chain
-	glLineWidth(1.5);
-	glColor3f(0.0f, 0.0f, 0.0f);
-	glBegin(GL_LINES);
-
-	glVertex3f(K * 0.0f, K * 1.0f, 0.0f);		// Y axis, High
-	glVertex3f(K * 0.0f, K * 0.0f, 0.0f);
-
-	glVertex3f(K * 0.0f, K * 0.5f, 0.0f);		// Y axis, High-2
-	glVertex3f(K * 0.0f, K * -0.5f, 0.0f);
-
-	glVertex3f(K * 0.0f, K * 0.0f, 0.0f);		// Y axis, low-2
-	glVertex3f(K * 0.0f, K * -1.0f, 0.0f);
-
-	glVertex3f(K * 0.0f, K * -0.5f, 0.0f);		// Y axis, low
-	glVertex3f(K * 0.0f, K * -1.5f, 0.0f);
-
-	glVertex3f(-K * 1.5f, K * 0.0f, 0.0f);		// X axis, low left
-	glVertex3f(K * 1.5f, K * 0.0f, 0.0f);
-
-	glEnd();
-}
-
-
 // Location
-void setLocation(float xP, float yP) {
+void setMouseLocation(float xP, float yP) {
 	xLoc = xP;
 	yLoc = yP;
 }
 
-vec2 getLoction() {
+vec2 getMouseLocation() {
 	return vec2(xLoc, yLoc);
 }
 
 
 // Cubes
 void initCubes() {
-	cubes[0] = new cubeLink(0, mat4(1));
+	cubes[0] = new cubeLink(0, mat4(1)); // tailChainCube
 	matrices[0] = cubes[0]->mat;
 
 	for (int i = 1; i < chainLength; i++) {
-		cubes[i] = new cubeLink(cubes[i - 1], i);
+		cubes[i] = new cubeLink(cubes[i - 1], i); // chainCubes
 		matrices[i] = cubes[i]->mat;
 	}
 
 	targetCube = (mat4(1) * mulMatTarget);
-	cubes[chainLength] = new cubeLink(4, targetCube);
-	cubes[chainLength + 1] = new cubeLink(0, mat4(1));
+	cubes[chainLength] = new cubeLink(4, targetCube); // targetCube
+	cubes[chainLength + 1] = new cubeLink(0, mat4(1)); // Scene
 }
 
 void rotateTargetCube(vec3 rotVec, float theta) {
@@ -209,39 +178,42 @@ void rotateTargetCube(vec3 rotVec, float theta) {
 }
 
 void rotate(char direction, float theta) {
-	setLocation(xPrev, yPrev);
-	vec3 rotateDirc, translateDirc;
+	setMouseLocation(xPrev, yPrev);
+	vec3 rotVec, transVec;
 	char axis = 'x';
-	int dirc = -1;
+	int dir = -1;
 	if (direction == 'R' || direction == 'L') {
-		rotateDirc = vec3(0.0f, 1.0f, 0.0f);
-		translateDirc = vec3(dirc, 0.0f, 0.0f);
+		rotVec = vec3(0.0f, 1.0f, 0.0f);
+		transVec = vec3(dir, 0.0f, 0.0f);
 		axis = 'y';
 		if (direction == 'L') {
 			theta *= -1;
-			dirc *= -1;
+			dir *= -1;
 		}
 	} else {
-		rotateDirc = vec3(1.0f, 0.0f, 0.0f);
+		rotVec = vec3(1.0f, 0.0f, 0.0f);
 		if (direction == 'D') {
 			theta *= -1;
-			dirc *= -1;
+			dir *= -1;
 		}
 	}
 	if (chosenObjIdx >= 0 && chosenObjIdx < chainLength) {
-		cubes[chosenObjIdx]->upTheta(theta, axis);
+		// chainCube
+		cubes[chosenObjIdx]->prepRotate(theta, axis);
 	} else if (chosenObjIdx == chainLength) {
-		targetCube = glm::rotate(targetCube, theta, rotateDirc);
+		// targetCube
+		targetCube = glm::rotate(targetCube, theta, rotVec);
 	} else if (chosenObjIdx == chainLength + 1) {
-		mat4 rot = glm::rotate(mat4(1), theta, rotateDirc);
-		cubes[0]->moveScene(rotateDirc, theta);
+		// Scene
+		mat4 rot = glm::rotate(mat4(1), theta, rotVec);
+		cubes[0]->moveScene(rotVec, theta);
 		targetCube = rot * targetCube;
 		cubes[chainLength + 1]->mat = rot * cubes[chainLength + 1]->mat;  // Rotate general axis
 	}
 }
 
 void move(char direction, float theta, float newXpos, float newYpos, bool mouse) {
-	vec2 currLoc = getLoction();
+	vec2 currLoc = getMouseLocation();
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	glReadPixels((GLint)newXpos, (GLint)(DISPLAY_HEIGHT - newYpos - 1.0f), (GLsizei)1.0f, (GLsizei)1.0f, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
 
@@ -270,66 +242,68 @@ void move(char direction, float theta, float newXpos, float newYpos, bool mouse)
 		isSolverShouldRun = true;
 	}
 
-	vec3 translateDirc;
+	vec3 transVec;
 
 	if (direction == 'R' || direction == 'L') {
-		translateDirc = vec3(dir * transX, 0.0f, 0.0f);
+		transVec = vec3(dir * transX, 0.0f, 0.0f);
 	} else if (direction == 'D' || direction == 'U') {
 		dir *= -1;
-		translateDirc = vec3(0.0f, dir * transY, 0.0f) * (-1.0f);
+		transVec = vec3(0.0f, dir * transY, 0.0f) * (-1.0f);
 	} else {
 		if (direction == 'F') {
 			dir *= -1;
 		}
-		translateDirc = vec3(0.0f, 0.0f, dir);
+		transVec = vec3(0.0f, 0.0f, dir);
 	}
 
-	mat4 trans = glm::translate(mat4(1), translateDirc);
+	mat4 transMat = glm::translate(mat4(1), transVec);
 	if (chosenObjIdx >= 0 && chosenObjIdx < chainLength) {
+		// Translate oneOf ChainCubes
 		if (direction == 'F' || direction == 'B') {
-			cubes[0]->mat = trans * cubes[0]->mat;
+			cubes[0]->mat = transMat * cubes[0]->mat;
 		} else if (mouse) {
 			if (abs(newXpos - currLoc[0]) > 0.1 || abs(newYpos - currLoc[1]) > 0.1) {
-				cubes[0]->mat = trans * cubes[0]->mat;
+				cubes[0]->mat = transMat * cubes[0]->mat;
 				if (direction == 'D' || direction == 'U') {
-					setLocation(currLoc[0], newYpos);
+					setMouseLocation(currLoc[0], newYpos);
 				} else {
-					setLocation(newXpos, currLoc[1]);
+					setMouseLocation(newXpos, currLoc[1]);
 				}
 			}
 		} else {
-			setLocation(newXpos, newYpos);
-			cubes[0]->mat = trans * cubes[0]->mat;
+			setMouseLocation(newXpos, newYpos);
+			cubes[0]->mat = transMat * cubes[0]->mat;
 		}
 	} else if (chosenObjIdx == chainLength) {
+		// Translate targetCube
 		if (direction == 'F' || direction == 'B') {
-			targetCube = trans * targetCube;
+			targetCube = transMat * targetCube;
 		} else if (mouse) {
 			if (abs(newXpos - currLoc[0]) > 0.1 || abs(newYpos - currLoc[1]) > 0.1) {
-				targetCube = trans * targetCube;
+				targetCube = transMat * targetCube;
 				if (direction == 'D' || direction == 'U') {
-					setLocation(currLoc[0], newYpos);
+					setMouseLocation(currLoc[0], newYpos);
 				} else {
-					setLocation(newXpos, currLoc[1]);
+					setMouseLocation(newXpos, currLoc[1]);
 				}
 			}
 		} else {
-			setLocation(newXpos, newYpos);
-			targetCube = trans * targetCube;
+			setMouseLocation(newXpos, newYpos);
+			targetCube = transMat * targetCube;
 		}
 	}
 }
 
 float calcDistTipFrom(int cubeIdx) {
-	// Calculate distance between two cubes (Tip & Destination)
-	mat4 tipCubeMat = cubes[cubeIdx]->getMat();
-	mat4 tipCube = glm::translate(tipCubeMat, vec3(0.0f, K, 0.0f));
+	// Calculate distance between <cubeIdxChain> Cube, Destination
+	mat4 chosenCubeMat = cubes[cubeIdx]->getMat();
+	mat4 chosenCube = glm::translate(chosenCubeMat, vec3(0.0f, K, 0.0f));
 	
-	// Takes 3rd row of 2 matrices, to Calc distance between 2 Points
-	vec3 tipLoc = vec3(tipCube[3][0], tipCube[3][1], tipCube[3][2]);
+	// 3rd row Matrices => Calc distance 2 Points
+	vec3 chosenLoc = vec3(chosenCube[3][0], chosenCube[3][1], chosenCube[3][2]);
 	vec3 destLoc = vec3(targetCube[3][0], targetCube[3][1], targetCube[3][2]);
 
-	return sqrt(pow(tipLoc[0] - destLoc[0], 2) + pow(tipLoc[1] - destLoc[1], 2) + pow(tipLoc[2] - destLoc[2], 2));
+	return sqrt(pow(chosenLoc[0] - destLoc[0], 2) + pow(chosenLoc[1] - destLoc[1], 2) + pow(chosenLoc[2] - destLoc[2], 2));
 }
 
 
@@ -337,44 +311,49 @@ float calcDistTipFrom(int cubeIdx) {
 void pick() {
 	Shader colorPickShader("./res/shaders/colorPickShader");
 	GLint viewport[4];
-	vec3 color;
+	vec3 colorVec;
 	unsigned char data[4];
 	display.Clear(1.0f, 1.0f, 1.0f, 1.0f);
 
 	for (int i = 0; i < chainLength; i++) {
-		color = vec3(1.0f / (i + 3), 0.0f, 0.0f);
+		// chainCubes
+		colorVec = vec3(1.0f / (i + 3), 0.0f, 0.0f);
 		matrices[i] = cubes[i]->getMat() * cubeLink::scaleMat;
 		MVP = P * matrices[i];
 		colorPickShader.Bind();
-		colorPickShader.Update(MVP, matrices[i], color);
+		colorPickShader.Update(MVP, matrices[i], colorVec);
 		mesh.Draw();
 	}
 
-	color = vec3(0.5f, 0.0f, 0.0f);
+	// targetCube
+	colorVec = vec3(0.5f, 0.0f, 0.0f);
 	MVP = P * targetCube;
 	colorPickShader.Bind();
-	colorPickShader.Update(MVP, targetCube, color);
+	colorPickShader.Update(MVP, targetCube, colorVec);
 	mesh.Draw();
+
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	glReadPixels((GLint)xPrev, (GLint)(viewport[3] - yPrev), (GLsizei)1.0f, (GLsizei)1.0f, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	GLint id;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &id);
 	int pickColor = data[0];
 
+	GLint id;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &id);
+
 	if (pickColor == 255) {
+		// Scene
 		chosenObjIdx = chainLength + 1;
 		backgroundPick++;
 	} else if (pickColor == 128) {
-		chosenObjIdx = chainLength;
+		// targetCube
+		chosenObjIdx = prevChosenObjIdx = chainLength;
 		backgroundPick = 0;
-		prevChosenObjIdx = chainLength;
 	} else {
 		for (int i = 0; i < chainLength; i++) {
-			float objColor = float(255.0) / float(i + 3.0);
+			// chainCubes
+			float objColor = 255.0f / float(i + 3.0f);
 			int roundedObjColor = (int)rint(objColor - 0.0000000001);
 			if (pickColor == roundedObjColor) {
-				chosenObjIdx = i;
-				prevChosenObjIdx = i;
+				chosenObjIdx = prevChosenObjIdx = i;
 				backgroundPick = 0;
 				break;
 			}
@@ -396,6 +375,7 @@ void IKsolver() {
 	float distFromTip = calcDistTipFrom(chainLength - 1);
 	std::cout << "Distance: " << (distFromTip) << std::endl;
 	if (distFromTip < 0.3 || distFromTail >= maxDist) {
+		// Stop Solver
 		isSolverShouldRun = false;
 		if (distFromTail >= maxDist) {
 			std::cout << "Cannot reach" << std::endl;
@@ -404,20 +384,25 @@ void IKsolver() {
 		}
 		idxCurrCubeSolver = 0;
 	} else {
+		// Run Solver
 		int currMatIdx = chainLength - idxCurrCubeSolver - 1;
 		mat4 topChainMat = cubes[chainLength - 1]->getMat();
 		mat4 topChain = glm::translate(topChainMat, vec3(0.0f, K, 0.0f));
 
-		mat4 currChainMat = cubes[currMatIdx]->getMat();
-		mat4 currChain = glm::translate(currChainMat, vec3(0.0f, -K, 0.0f));
+		mat4 currCubeMat = cubes[currMatIdx]->getMat();
+		mat4 currChainCube = glm::translate(currCubeMat, vec3(0.0f, -K, 0.0f));
 
-		vec3 v1 = normalize(vec3(topChain[3][0] - currChain[3][0], topChain[3][1] - currChain[3][1], topChain[3][2] - currChain[3][2]));
-		vec3 v2 = normalize(vec3(targetCube[3][0] - currChain[3][0], targetCube[3][1] - currChain[3][1], targetCube[3][2] - currChain[3][2]));
+		vec3 v1 = normalize(vec3(topChain[3][0] - currChainCube[3][0], topChain[3][1] - currChainCube[3][1],
+			topChain[3][2] - currChainCube[3][2]));
+		vec3 v2 = normalize(vec3(targetCube[3][0] - currChainCube[3][0], targetCube[3][1] - currChainCube[3][1],
+			targetCube[3][2] - currChainCube[3][2]));
 
 		float cosA = glm::clamp(dot(v1, v2), -0.99f, 0.99f);
+
 		float thetaX = acos(cosA);
 		vec3 plane = cross(v1, v2);
-		cubes[currMatIdx]->upThetaSolver(plane, (-thetaX * 180.0f / (5.0f * (float)PI)));
+
+		cubes[currMatIdx]->prepRotateSolver(plane, ((-1) * thetaX * 180.0f / (5.0f * (float)PI)));
 	}
 }
 
@@ -485,11 +470,11 @@ void cursorPositionCallback(GLFWwindow* window, double newXpos, double newYpos) 
 	yPrev = (float)newYpos;
 
 	if (firstTimeKeyRight) {
-		setLocation((float)newXpos, (float)newYpos);
+		setMouseLocation((float)newXpos, (float)newYpos);
 		firstTimeKeyRight = false;
 	}
 
-	vec2 currLoc = getLoction();
+	vec2 currLoc = getMouseLocation();
 	if (newXpos > currLoc[0]) {
 		if (mouseRightClick) {
 			move('R', 1.0f, (float)newXpos, (float)newYpos, true);

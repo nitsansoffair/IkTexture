@@ -40,7 +40,7 @@ cubeLink& cubeLink::operator=(const cubeLink& other) {
 }
 
 
-void cubeLink::upTheta(float theta, char axis){
+void cubeLink::prepRotate(float theta, char axis){
 	switch (axis) {
 		case 'x': {
 			this->rotX = glm::rotate(this->rotX, theta, vec3(1.0f, 0.0f, 0.0f));
@@ -54,7 +54,7 @@ void cubeLink::upTheta(float theta, char axis){
 	this->rot = this->rotY * this->rotX;
 }
 
-void cubeLink::upThetaSolver(vec3 vec, float thetaX){
+void cubeLink::prepRotateSolver(vec3 vec, float thetaX){
 	this->rot = glm::rotate(mat4(1), thetaX, -vec) * this->rot;
 }
 
