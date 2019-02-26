@@ -9,8 +9,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-
-
 using namespace glm;
 using namespace std;
 
@@ -18,30 +16,25 @@ using namespace std;
 class cubeLink {
 
 public:
-
-	cubeLink *father = NULL;
-	mat4 mat;
-	mat4 trans;
-	mat4 trans_op;
-	mat4 rotX;
-	mat4 rotY;
-	mat4 rot;
-	mat4 scaleMat = glm::scale(vec3(1.0f, 2.0f, 1.0f));
-	char axis;
-	float theta;
-	float K = 1.025;
+	cubeLink* father = NULL;
+	mat4 mat, trans, trans_op, rotX, rotY, rot, scaleMat = glm::scale(vec3(1.0f, 2.0f, 1.0f));
+	
+	char axis = NULL;
+	float theta = NULL, K = 1.025f;
 	int idx;
-	void upTheta(float theta, char axis);
-	mat4 getMat();
-	void moveScene(vec3 direction, float theta);
-	void upThetaSolver(vec3 V, float thetaX);
+
 	cubeLink(cubeLink * father, int idx);
 	cubeLink(int idx, mat4 mat);
+
 	cubeLink& operator=(const cubeLink& other);
 	cubeLink(cubeLink& other);
-	float calcRootsAngle();
-	~cubeLink();
+	~cubeLink() {};
 
+	void upTheta(float theta, char axis);
+	void upThetaSolver(vec3 V, float thetaX);
+
+	mat4 getMat();
+	void moveScene(vec3 direction, float theta);
 
 };
 
