@@ -27,11 +27,11 @@ vec3 color;
 const char* result_string_pointer = "SOIL initialized";
 
 
-void drawCube(mat4 toDraw) {
-	MVP = P * toDraw;
+void drawCube(mat4 toDrawMat) {
+	MVP = P * toDrawMat;
 	shader.Bind();
 	color = vec3(1.0f, 1.0f, 1.0f);
-	shader.Update(MVP, toDraw, color);
+	shader.Update(MVP, toDrawMat, color);
 }
 
 

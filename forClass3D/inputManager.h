@@ -25,10 +25,10 @@ static const int DISPLAY_WIDTH = 800, DISPLAY_HEIGHT = 800;
 #define PI 3.14159265
 
 const float K = 2.05f,
-	Far = 100.0f,
-	Near = 0.1f,
-	CAM_ANGLE = 60.0f,
-	relation = DISPLAY_HEIGHT / DISPLAY_WIDTH;
+Far = 100.0f,
+Near = 0.1f,
+CAM_ANGLE = 60.0f,
+relation = DISPLAY_HEIGHT / DISPLAY_WIDTH;
 
 const int chainLength = 4;
 
@@ -42,7 +42,8 @@ float xPrev,
 	xLoc = 0,
 	yLoc = 0,
 	depth[4],
-	maxDist = 2.0f * K * (int)chainLength - K * 1.2f;
+	maxDist = 2.0f * K * (int)chainLength - K * 1.2f,
+	cubeLink::K = 1.025f;
 
 unsigned char Data[4];
 
@@ -129,7 +130,8 @@ mat4 matrices[10],
 	M1 = glm::translate(mat4(1), vec3(3, 0, 0)),
 	M2 = glm::translate(mat4(1), vec3(-3, 0, 0)),
 	P = P1 * glm::lookAt(pos, pos + forwardVec, up),
-	MVP = P * M;
+	MVP = P * M,
+	cubeLink::scaleMat = glm::scale(vec3(1.0f, 2.0f, 1.0f));
 
 
 // Axises
@@ -243,17 +245,19 @@ void move(char direction, float theta, float newXpos, float newYpos, bool mouse)
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	glReadPixels((GLint)newXpos, (GLint)(DISPLAY_HEIGHT - newYpos - 1.0f), (GLsizei)1.0f, (GLsizei)1.0f, GL_DEPTH_COMPONENT, GL_FLOAT, depth);
 
-	float z = Far + depth[0] * (Near - Far);
-	float yRel = newYpos - currLoc[1];
-	float xRel = newXpos - currLoc[0];
-	float transX = 1.0f, transY = 1.0f;
-	int dirc = -1;
+	float z = Far + depth[0] * (Near - Far), 
+		yRel = newYpos - currLoc[1],
+		xRel = newXpos - currLoc[0],
+		transX = 1.0f,
+		transY = 1.0f;
+
+	int dir = -1;
 
 	if (mouse) {
-		transX = 1.0f * relation * xRel / (float)(DISPLAY_WIDTH)* Near * 2.0f * (float)tan(CAM_ANGLE * PI / 360.0f) * (Far / z);
-		transY = 1.0f * yRel / (float)(DISPLAY_HEIGHT)* Near * 2.0f * tan(CAM_ANGLE * (float)PI / 360.0f) * (Far / z);
+		transX = 1.0f * relation * xRel / (float)(DISPLAY_WIDTH) * Near * 2.0f * (float)tan(CAM_ANGLE * PI / 360.0f) * (Far / z);
+		transY = 1.0f * yRel / (float)(DISPLAY_HEIGHT) * Near * 2.0f * tan(CAM_ANGLE * (float)PI / 360.0f) * (Far / z);
 	} else if (direction == 'L' || direction == 'U') {
-		dirc *= -1;
+		dir *= -1;
 	}
 
 	if (abs(transX) > 1.5) {
@@ -269,15 +273,15 @@ void move(char direction, float theta, float newXpos, float newYpos, bool mouse)
 	vec3 translateDirc;
 
 	if (direction == 'R' || direction == 'L') {
-		translateDirc = vec3(dirc * transX, 0.0f, 0.0f);
+		translateDirc = vec3(dir * transX, 0.0f, 0.0f);
 	} else if (direction == 'D' || direction == 'U') {
-		dirc *= -1;
-		translateDirc = vec3(0.0f, dirc * transY, 0.0f) * (-1.0f);
+		dir *= -1;
+		translateDirc = vec3(0.0f, dir * transY, 0.0f) * (-1.0f);
 	} else {
 		if (direction == 'F') {
-			dirc *= -1;
+			dir *= -1;
 		}
-		translateDirc = vec3(0.0f, 0.0f, dirc);
+		translateDirc = vec3(0.0f, 0.0f, dir);
 	}
 
 	mat4 trans = glm::translate(mat4(1), translateDirc);
@@ -339,7 +343,7 @@ void pick() {
 
 	for (int i = 0; i < chainLength; i++) {
 		color = vec3(1.0f / (i + 3), 0.0f, 0.0f);
-		matrices[i] = cubes[i]->getMat() * cubes[0]->scaleMat;
+		matrices[i] = cubes[i]->getMat() * cubeLink::scaleMat;
 		MVP = P * matrices[i];
 		colorPickShader.Bind();
 		colorPickShader.Update(MVP, matrices[i], color);

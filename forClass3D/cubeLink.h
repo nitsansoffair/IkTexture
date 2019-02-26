@@ -16,14 +16,12 @@ using namespace std;
 class cubeLink {
 
 public:
+	static float K;
+	static mat4 scaleMat;
+
 	cubeLink* father = NULL;
-	mat4 mat, trans, trans_op,
-		rotX, rotY, rot,
-		scaleMat = glm::scale(vec3(1.0f, 2.0f, 1.0f));
-	
-	char axis = NULL;
-	float theta = NULL,
-		K = 1.025f;
+	mat4 mat, trans, transOp,
+		rotX, rotY, rot;
 	int idx;
 
 	cubeLink(cubeLink* father, int idx);
